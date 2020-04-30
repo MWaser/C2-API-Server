@@ -22,7 +22,7 @@ module.exports = {
     dbConn: process.env.dbConn ? JSON.parse(process.env.dbConn) : {
         "server": "gbaorg.database.windows.net",
         "options": { "encrypt": true, "database": "dbGBBP-dev", "trustServerCertificate": true },
-        "authentication": { "type": "default", "options": { "userName": "gba-dev", "password": "devPass0" } } 
+        "authentication": { "type": "default", "options": { "userName": "gba-dev", "password": "vedP455$" } } 
     },
     tokenSig: process.env.tokenSig || 'The GBA is awesome!'
 };

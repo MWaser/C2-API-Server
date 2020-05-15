@@ -10,7 +10,8 @@ import { addInfo } from '../blockchain/memberOps';
 import { send } from '../blockchain/tokenOps';
 
 userRouter.get('/', function (req, res) { res.send('You need to call a specific USER api'); });
-userRouter.post('/login', login);
+userRouter.post('/gbaLogin', gbaLogin);
+userRouter.post('/walletLogin', walletLogin);
 userRouter.post('/tokenTut', tokenTut);
 userRouter.get('/leaderboard', leaderboard);
 userRouter.post('/wallet', wallet);
@@ -30,7 +31,7 @@ async function finishLogin(GBAId, Name, Email, res) {
     res.status(200).cookie('userInfo', userInfo, { path: '/', maxAge: 10000000 }).send(userInfo);
 }
 
-function login(req, res) {
+function gbaLogin(req, res) {
     if (req.body.code == 'XYZZY') {     // we're in local debug mode and can't call login server without valid login code
         finishLogin(1, "Mock USER", "Bo.Gus@GBAGlobal.org", res);
         return;
@@ -47,6 +48,16 @@ function login(req, res) {
         axios.get(config.loginServer + 'oauth/me/?access_token=' + response.data.access_token)
             .then((response) => { finishLogin(response.data.ID, response.data.display_name, response.data.user_email, res) });
     }).catch((e) => { console.log("login error: " + e); });
+}
+
+async function walletLogin(req, res) {
+    let user = await te("exec spWalletLogin @pAddress")
+        .param('pAddress', req.body.PoAAddr, tedious.TYPES.VarChar).toPromise();
+    if (user.length) {
+        let userInfo = user[0];
+        userInfo.token = jwt.sign({ id: userInfo.GBAId, name: userInfo.name }, config.tokenSig)
+        res.status(200).cookie('userInfo', userInfo, { path: '/', maxAge: 10000000 }).send(userInfo);
+    } else res.status(404).send();
 }
 
 function updateMember(res, user) {

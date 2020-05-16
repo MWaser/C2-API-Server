@@ -12,6 +12,7 @@ import { send } from '../blockchain/tokenOps';
 userRouter.get('/', function (req, res) { res.send('You need to call a specific USER api'); });
 userRouter.post('/gbaLogin', gbaLogin);
 userRouter.post('/walletLogin', walletLogin);
+userRouter.post('/update', update);
 userRouter.post('/tokenTut', tokenTut);
 userRouter.get('/leaderboard', leaderboard);
 userRouter.post('/wallet', wallet);
@@ -24,7 +25,7 @@ async function finishLogin(GBAId, Name, Email, res) {
         .param('pEmail', Email, tedious.TYPES.VarChar).toPromise();
     let userInfo = user[0];
     userInfo.token = jwt.sign({ id: userInfo.GBAId, name: userInfo.name }, config.tokenSig)
-    if (userInfo.Created == userInfo.LastLogin) {
+    if (userInfo.Created == userInfo.LastLogin && config.addrCurr != '') {
         addInfo(config.address, userInfo.GBAId, "Name", userInfo.Name);
         addInfo(config.address, userInfo.GBAId, "Email", userInfo.Email);
     }
@@ -33,7 +34,7 @@ async function finishLogin(GBAId, Name, Email, res) {
 
 function gbaLogin(req, res) {
     if (req.body.code == 'XYZZY') {     // we're in local debug mode and can't call login server without valid login code
-        finishLogin(1, "Mock USER", "Bo.Gus@GBAGlobal.org", res);
+        finishLogin(2, "Macho USER", "Bo.Gus@GBAGlobal.org", res);
         return;
     }
     console.log("before post");
@@ -61,33 +62,43 @@ async function walletLogin(req, res) {
 }
 
 function updateMember(res, user) {
-    te("exec spMemberUpdate @pId, @pName, @pEmail, @pStatusId, @pStatusStr, @pPoAAddr")
+    te("exec spMemberUpdate @pId, @pName, @pEmail, @pStatusId, @pStatusStr, @pBChain, @pAddress")
         .param('pId', user.Id, tedious.TYPES.Int)
         .param('pName', user.Name, tedious.TYPES.VarChar)
         .param('pEmail', user.Email, tedious.TYPES.VarChar)
         .param('pStatusId', user.StatusId, tedious.TYPES.Int)
         .param('pStatusStr', user.StatusStr, tedious.TYPES.VarChar)
-        .param('pPoAAddr', user.PoAAddr, tedious.TYPES.VarChar).toObj((userInfo) => {
-            console.log(userInfo);
+        .param('pBChain', user.BChain, tedious.TYPES.Int)
+        .param('pAddress', user.Address, tedious.TYPES.VarChar).toObj((userInfo) => {
             res.status(200).cookie('userInfo', userInfo[0], { path: '/', maxAge: 10000000 }).send(userInfo[0]);
         });
+}
+
+async function update(req, res) {
+    let users = await te("SELECT * FROM Members WHERE GBAId = " + req.body.GBAId + " FOR JSON PATH").toPromise();
+    let user = users[0];
+    user.Address = req.body.Address;
+    user.BChain = req.body.BChain;
+    updateMember(res, user);
 }
 
 async function tokenTut(req, res) {
     let users = await te("SELECT * FROM Members WHERE GBAId = " + req.body.GBAId + " FOR JSON PATH").toPromise();
     let user = users[0];
+    user.Address = req.body.Address;
+    user.BChain = req.body.BChain;
     if (req.body.step >= user.StatusId) {
+        user.StatusId = req.body.step;
         switch (req.body.step) {
             case 1:     // Metamask
-                user.PoAAddr = req.body.PoAAddr;
-                user.StatusId = 1;
                 user.StatusStr = 'Metamask Installed';
                 let value = parseFloat('100.' + req.body.GBAId.toString()).toFixed(2);
                 send(config.playToken, value, req.body.PoAAddr, 'Welcome to the GBA Blockchain!');
                 updateMember(res, user);
                 break;
-            case 2: user.StatusId = 2; user.StatusStr = 'Checked Tokens'; updateMember(res, user); break;
-            case 3: user.StatusId = 3; user.StatusStr = 'Sent Tokens'; updateMember(res, user); break;
+            case 2: user.StatusStr = 'Checked Tokens'; updateMember(res, user); break;
+            case 3: user.StatusStr = 'Sent Tokens'; updateMember(res, user); break;
+            case 4: user.StatusStr = 'Joined Hive'; updateMember(res, user); break;
         }
     }
 }

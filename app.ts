@@ -32,7 +32,7 @@ if (config.addrCurr != '') {                                                    
     setInterval(checkEvents, 60000);                                                // once a minute seems about right
     async function checkEvents() {
         initMemberEvents();
-        initTokenEvents(config.playToken);
+        initTokenEvents(config.token['PLAY']);
     }
 
     // END MAJOR KLUDGE
@@ -60,7 +60,7 @@ if (config.addrCurr != '') {                                                    
     async function initBC() {
         if (await web3.eth.net.isListening().catch(() => { console.log("No connection to blockchain " + config.addrCurr); server.close(); })) {
             initMemberEvents();
-            initTokenEvents(config.playToken);
+            initTokenEvents(config.token['PLAY']);
             app.use('/api/', router);
         };
     }

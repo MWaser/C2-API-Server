@@ -9,6 +9,8 @@ import * as  gbaToken from '../build/contracts/GBAToken.json';
 
 async function processEvent(token, event) {
     if (['MinterAdded', 'MinterRemoved', 'PauserAdded', 'PauserRemoved'].includes(event.event)) return;
+    if (event.event == 'MemoTransfer')
+        console.log(event.returnValues.memo);
     let memo = event.returnValues.memo ? event.returnValues.memo : '';
     let destChain = event.returnValues.blockchain ? event.returnValues.blockchain : '';
     let destAddr = event.returnValues.destAddr ? event.returnValues.destAddr : '';
@@ -32,11 +34,10 @@ async function processEvent(token, event) {
     } catch (e) { console.log("tokenEvent/processEvent ERROR: " + e); }
 }
 
-function lastBlock(): Promise<number> {
-    return new Promise((resolve, reject) => {
-        app.get('te')("SELECT COUNT(1) from TokenEvents").toPromise()
-            .then((count) => { if (count == 0) resolve(0); else app.get('te')("SELECT MAX(Block) from TokenEvents").toPromise().then(resolve); });
-    });
+async function lastBlock() {
+    var count = await app.get('te')("SELECT COUNT(1) from TokenEvents").toPromise();
+    if (count != 0) count = await app.get('te')("SELECT MAX(Block) from TokenEvents").toPromise();
+    return (count);
 }
 
 function pastEvents(token, startBlock): Promise<[]> {

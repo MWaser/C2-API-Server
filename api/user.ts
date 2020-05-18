@@ -34,7 +34,7 @@ async function finishLogin(GBAId, Name, Email, res) {
 
 function gbaLogin(req, res) {
     if (req.body.code == 'XYZZY') {     // we're in local debug mode and can't call login server without valid login code
-        finishLogin(2, "Macho USER", "Bo.Gus@GBAGlobal.org", res);
+        finishLogin(1, "Macho USER", "Bo.Gus@GBAGlobal.org", res);
         return;
     }
     console.log("before post");

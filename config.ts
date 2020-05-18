@@ -2,7 +2,7 @@ module.exports = {
     addrGBBP: 'http://etht5zt7j-dns-reg1.eastus2.cloudapp.azure.com:8540',
     wsGBBP: 'ws://etht5zt7j-dns-reg1-0.eastus2.cloudapp.azure.com:8547',
     bothLocal: 'ws://localhost:8545',
-    addrCurr: '',          // switch for ganache vs GBBP (wsGBBP is nonfunctional!)
+    addrCurr: 'http://etht5zt7j-dns-reg1.eastus2.cloudapp.azure.com:8540',          // switch for ganache vs GBBP (wsGBBP is nonfunctional!)
     
     // mInfoAddr: '0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B',     // on Mark Waser's ganache (feel free to save your own as well)
     // playToken: { symbol: 'PLAY', name: 'GBA Play Token', decimals: 2, address: '0xC89Ce4735882C9F0f0FE26686c53074E09B0D550' },

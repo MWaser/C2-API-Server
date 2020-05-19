@@ -19,8 +19,7 @@ async function processEvent(event) {
             .param('pElement', event.returnValues.element, tedious.TYPES.VarChar)
             .param('pData', event.returnValues.data, tedious.TYPES.VarChar)
             .param('pOldData', event.returnValues.oldData, tedious.TYPES.VarChar)
-            .toPromise();
-        console.log("spMemberEvent " + obj);
+            .toObj((obj) => console.log("spMemberEvent " + JSON.stringify(obj)));
     } catch (e) { console.log("memberEvent/processEvent ERROR: " + e); }
 }
 

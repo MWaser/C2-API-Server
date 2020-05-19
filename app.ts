@@ -31,6 +31,8 @@ if (config.addrCurr != '') {                                                    
 
     setInterval(checkEvents, 60000);                                                // once a minute seems about right
     async function checkEvents() {
+        var now = new Date();
+        console.log(now.toDateString() + " " + now.toTimeString());
         initMemberEvents();
         initTokenEvents(config.token['PLAY']);
     }
@@ -48,7 +50,7 @@ if (config.addrCurr != '') {                                                    
         let tx = taskQueue.shift();
         await tx.send({ from: account.address, gas: 500000, nonce: tcount }).catch((e) => console.log("ethQ tx send ERROR: " + e));
     };
-    try { checkQ(); } catch (e) { console.log }
+    try { checkQ(); } catch (e) { (e) => console.log("checkQ error - " + e);}
     app.set('taskQ', taskQueue);
 }
 

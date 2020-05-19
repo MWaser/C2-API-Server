@@ -8,29 +8,32 @@ const taskQ = app.get('taskQ');
 import * as  gbaToken from '../build/contracts/GBAToken.json';
 
 async function processEvent(token, event) {
-    if (['MinterAdded', 'MinterRemoved', 'PauserAdded', 'PauserRemoved'].includes(event.event)) return;
-    if (event.event == 'MemoTransfer')
-        console.log(event.returnValues.memo);
+    if (['MinterAdded', 'MinterRemoved', 'PauserAdded', 'PauserRemoved', 'Approval'].includes(event.event)) return;
+    //if (event.event == 'CBTransfer')
+        console.log(event);
     let memo = event.returnValues.memo ? event.returnValues.memo : '';
     let destChain = event.returnValues.blockchain ? event.returnValues.blockchain : '';
     let destAddr = event.returnValues.destAddr ? event.returnValues.destAddr : '';
     try {
         let query = "exec spTokenEvent @pTxHash, @pEvent, @pToken, @pFromChain, @pFromBlock, @pFromAddr, ";
-        query += "@pToAddr, @pValue, @pMemo, @pDestChain, @pDestAddr";
+        query += "@pToAddr, @pValue, @pMemo, @pClaimBy, @pClaimBlock, @pFee, @pDestChain, @pDestBlock, @pDestAddr"; 
         let obj = await te(query)
             .param('pTxHash', event.transactionHash, tedious.TYPES.VarChar)
             .param('pEvent', event.event, tedious.TYPES.VarChar)
             .param('pToken', token.symbol, tedious.TYPES.VarChar)
-            .param('pFromChain', "Core PoA", tedious.TYPES.VarChar)
+            .param('pFromChain', "GBA Hub", tedious.TYPES.VarChar)
             .param('pFromBlock', event.blockNumber, tedious.TYPES.Int)
             .param('pFromAddr', event.returnValues.from, tedious.TYPES.VarChar)
             .param('pToAddr', event.returnValues.to, tedious.TYPES.VarChar)
             .param('pValue', event.returnValues.value, tedious.TYPES.Decimal)
+            .param('pClaimBy', '', tedious.TYPES.VarChar)
+            .param('pClaimBlock', '', tedious.TYPES.VarChar)
+            .param('pFee', 0, tedious.TYPES.Decimal)
             .param('pMemo', memo, tedious.TYPES.VarChar)
             .param('pDestChain', destChain, tedious.TYPES.VarChar)
+            .param('pDestBlock', "", tedious.TYPES.VarChar)
             .param('pDestAddr', destAddr, tedious.TYPES.VarChar)
-            .toPromise();
-        console.log("spTokenEvent " + obj);
+            .toObj((obj) => console.log("spTokenEvent " + JSON.stringify(obj)));
     } catch (e) { console.log("tokenEvent/processEvent ERROR: " + e); }
 }
 
@@ -42,7 +45,7 @@ async function lastBlock() {
 
 function pastEvents(token, startBlock): Promise<[]> {
     return new Promise((resolve, reject) => {
-        token.contract.getPastEvents('allEvents', { fromBlock: startBlock, toBlock: 'latest' }, (error, events) => {
+      token.contract.getPastEvents('allEvents', { fromBlock: startBlock, toBlock: 'latest' }, (error, events) => {
             if (error) reject(error); else resolve(events);
         });
     })
@@ -50,7 +53,7 @@ function pastEvents(token, startBlock): Promise<[]> {
 
 export async function initTokenEvents(token) {
     token.contract = new web3.eth.Contract(gbaToken.abi, token.address, { data: gbaToken.bytecode })
-    let startBlock = await lastBlock() + 1;
+    let startBlock = await lastBlock();
     let events = await pastEvents(token, startBlock);
     for (var i = 0; i < events.length; i++) { await processEvent(token, events[i]); }
     //startBlock = await lastBlock() + 1;                                                       // SEE KLUDGE NOTES IN app.ts

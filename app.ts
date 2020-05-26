@@ -34,7 +34,7 @@ if (config.addrCurr != '') {                                                    
         var now = new Date();
         console.log(now.toDateString() + " " + now.toTimeString());
         initMemberEvents();
-        initTokenEvents(config.token['PLAY']);
+        config.tokens.forEach((token) => initTokenEvents(config.token[token]));
     }
 
     // END MAJOR KLUDGE

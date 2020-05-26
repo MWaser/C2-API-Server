@@ -53,7 +53,7 @@ function pastEvents(token, startBlock): Promise<[]> {
 
 export async function initTokenEvents(token) {
     token.contract = new web3.eth.Contract(gbaToken.abi, token.address, { data: gbaToken.bytecode })
-    let startBlock = await lastBlock();
+    let startBlock = await lastBlock() + 1;
     let events = await pastEvents(token, startBlock);
     for (var i = 0; i < events.length; i++) { await processEvent(token, events[i]); }
     //startBlock = await lastBlock() + 1;                                                       // SEE KLUDGE NOTES IN app.ts

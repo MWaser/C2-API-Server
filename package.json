@@ -21,7 +21,6 @@
         "jsonwebtoken": "^8.5.1",
         "path": "^0.12.7",
         "tedious": "^8.2.0",
-        "web3": "^1.2.6"
     },
     "devDependencies": {
         "typescript": "^3.8.3"
